@@ -227,6 +227,10 @@ const cleanDatabase = async () => {
   server.close();
 };
 
+app.get('/', function (req, res) {
+  res.json({msg: 'Server is up and running.'})
+})
+
 // listen for TERM signal .e.g. kill
 process.on('SIGTERM', () => cleanDatabase());
 
