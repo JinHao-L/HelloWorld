@@ -12,13 +12,21 @@ function trimMessages(messages) {
   return messages;
 }
 
-function MessageList({ messages }) {
+function MessageList({ messages = [] }) {
   return (
     <ul className={'message-list'}>
-      {trimMessages(messages || []).map((message, index) => {
+      {trimMessages(messages).map((message, index) => {
         return (
           <li key={index}>
-            <ChatMessage sender={message.sender} text={message.text} senderId={message.senderId} />
+            <ChatMessage
+              sender={
+                index > 0 && messages[index - 1].senderId === message.senderId
+                  ? undefined
+                  : message.sender
+              }
+              text={message.text}
+              senderId={message.senderId}
+            />
           </li>
         );
       })}

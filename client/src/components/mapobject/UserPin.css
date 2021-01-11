@@ -1,22 +1,52 @@
 .user {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 48px;
+
+  transform-origin: center calc(100% - 25px);
   align-items: center;
   justify-content: center;
   transition: transform 0.3s;
   animation: smooth-entry 0.3s;
 }
 
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+}
+
 .user-name {
+  position: absolute;
+  top: 50px;
   background-color: white;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 5px;
+  padding: 0 5px 0 5px;
   border-radius: 5px;
   font-weight: bold;
   font-size: 14px;
   text-transform: uppercase;
-  width: 80px;
   text-align: center;
+}
+
+.speech-bubble {
+  position: absolute;
+  bottom: 50px;
+  background: #00aabb;
+  padding: 5px 10px 5px 10px;
+  min-width: 64px;
+  border: 2px solid #fff;
+  border-radius: 1em;
+
+  text-align: center;
+  font-size: 14px;
+  color: white;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 @keyframes smooth-entry {

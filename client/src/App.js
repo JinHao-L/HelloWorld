@@ -66,10 +66,17 @@ function App() {
     socket.on('outputUser', (newUsers) => {
       newUsers.map((user) => console.log('user ' + user.username + ' joined'));
       newUsers = newUsers.map((user) => createUserObj(user));
+      if (newUsers.length === 1) {
+        newUsers = newUsers.map((user) => ({
+          ...user,
+          latestMessage: "Hello everybody, I'm " + user.username,
+        }));
+      }
       setUsers((prevUsers) => [...prevUsers, ...newUsers]);
     });
 
     socket.on('outputMessage', (newMessages) => {
+      console.log(newMessages);
       const modifiedMsg = newMessages.map((msg) => createMessageObj(msg));
       setMessages((prevMessages) => [...prevMessages, ...modifiedMsg]);
 
@@ -140,6 +147,7 @@ function App() {
       avatar: image,
       lat: currLocation.lat,
       lng: currLocation.lng,
+      text: "Hello everybody, I'm " + name,
     });
 
     // listen for location update

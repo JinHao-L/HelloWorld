@@ -14,7 +14,11 @@ const server = require('http').createServer(app);
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:64226', 'https://helloworld-hnr.netlify.app'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:64226',
+      'https://helloworld-hnr.netlify.app',
+    ],
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
@@ -52,6 +56,26 @@ app.use(
   })
 );
 
+function broadcastMessage(username, userId, text) {
+  const message = {
+    _id: Math.floor(Date.now() / 1000) + '-' + userId,
+    username: username,
+    userId: userId,
+    text: text,
+  };
+
+  // console.log('going to emit');
+  // newMessage
+  //   .save()
+  //   .then((message) => {
+  //     console.log('emitting');
+  io.emit('outputMessage', [message]);
+  // })
+  // .catch((err) => {
+  //   console.log(err);
+  // });
+}
+
 // Socket.io connections between client and server
 io.on('connection', (socket) => {
   User.find({})
@@ -61,13 +85,13 @@ io.on('connection', (socket) => {
       socket.emit('outputUser', users);
       socket.emit('onlineUsers', users.length);
 
-      Message.find({})
-        .limit(100)
-        .sort({ _id: 1 })
-        .then((messages) => {
-          socket.emit('outputMessage', messages);
-        })
-        .catch((err) => console.log(err));
+      // Message.find({})
+      //   .limit(100)
+      //   .sort({ _id: 1 })
+      //   .then((messages) => {
+      //     socket.emit('outputMessage', messages);
+      //   })
+      //   .catch((err) => console.log(err));
     })
     .catch((err) => console.log(err));
 
@@ -92,6 +116,10 @@ io.on('connection', (socket) => {
         });
       })
       .catch((err) => console.log(err));
+
+    if (data.text) {
+      broadcastMessage(data.username, socket.id, data.text);
+    }
   });
 
   socket.on('inputMessage', (data) => {
@@ -101,23 +129,7 @@ io.on('connection', (socket) => {
       User.findOne({ _id: socket.id })
         .then((user) => {
           if (user) {
-            const newMessage = new Message({
-              _id: Math.floor(Date.now() / 1000) + '-' + socket.id,
-              username: user.username,
-              userId: socket.id,
-              text: data.text,
-            });
-
-            console.log('going to emit');
-            newMessage
-              .save()
-              .then((message) => {
-                console.log('emitting');
-                io.emit('outputMessage', [message]);
-              })
-              .catch((err) => {
-                console.log(err);
-              });
+            broadcastMessage(user.username, socket.id, data.text);
           }
         })
         .catch((err) => console.log(err));
@@ -177,8 +189,12 @@ io.on('connection', (socket) => {
         if (user) {
           console.log('emitting disconnect for user ' + user.username);
           socket.broadcast.emit('userLeft', socket.id);
-          User.estimatedDocumentCount({}, (err, count) => {
-            socket.broadcast.emit('onlineUsers', count);
+          User.estimatedDocumentCount({}, async (err, count) => {
+            if (count === 0) {
+              await mongoose.connection.db.dropCollection('messages');
+            } else {
+              socket.broadcast.emit('onlineUsers', count);
+            }
           });
         }
       })
@@ -187,9 +203,13 @@ io.on('connection', (socket) => {
 });
 
 // URI of the MongoDB database used by app (Use only one)
-// require('dotenv').config();
-// const db = 'mongodb://127.0.0.1:27017/helloworld'; // To use for connecting to local database (require MongoDB installed locally)
-const db = process.env.MONGODB_ATLAS_URI; // Can change to MONGODB_URI to connect to cloud database
+
+// To use for connecting to local database (require MongoDB installed locally)
+// const db = 'mongodb://127.0.0.1:27017/helloworld';
+
+// Can change to MONGODB_URI to connect to cloud database
+require('dotenv').config();
+const db = process.env.MONGODB_ATLAS_URI;
 
 // mongoDB settings
 const options = {
@@ -216,15 +236,15 @@ mongoose
 
 mongoose.connection.on('connected', () => {
   console.log('Mongoose connected to DB Cluster');
-})
+});
 
 mongoose.connection.on('error', (error) => {
   console.error(error.message);
-})
+});
 
 mongoose.connection.on('disconnected', () => {
   console.log('Mongoose Disconnected');
-})
+});
 
 // Uses process.env.PORT if available otherwise 5000
 const port = process.env.PORT || 5000;

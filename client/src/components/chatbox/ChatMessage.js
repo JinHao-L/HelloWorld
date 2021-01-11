@@ -7,9 +7,11 @@ function ChatMessage({ sender, text, senderId }) {
 
   return (
     <div className={'chat-message'}>
-      <div className={'chat-name'} style={{ float: isUserMessage ? 'right' : 'left' }}>
-        {sender}
-      </div>
+      {sender && (
+        <div className={'chat-name'} style={{ float: isUserMessage ? 'right' : 'left' }}>
+          {sender}
+        </div>
+      )}
       <div
         className={'chat-bubble'}
         style={

@@ -23,8 +23,8 @@ function ChatInput() {
           placeholder={'Type a message...'}
           type={'text'}
         />
-        <button type={'submit'}>
-          <IoMdSend color={'#40A7E3'} size={'1.2em'}/>
+        <button type={'submit'} style={{ borderColor: 'transparent' }}>
+          <IoMdSend color={'#40A7E3'} size={'1.2em'} />
         </button>
       </div>
     </form>
