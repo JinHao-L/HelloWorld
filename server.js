@@ -52,25 +52,6 @@ app.use(
   })
 );
 
-// URI of the MongoDB database used by app (Use only one)
-// const db = 'mongodb://127.0.0.1:27017/helloworld'; // To use for connecting to local database (require MongoDB installed locally)
-const db = process.env.MONGODB_ATLAS_URI; // Can change to MONGODB_URI to connect to cloud database
-
-// mongoDB settings
-const options = {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  // autoIndex: true, // Will result in rejection of duplicate entries
-  keepAlive: true,
-  poolSize: 10,
-  bufferMaxEntries: 0,
-  connectTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
-  family: 4, // Use IPv4, skip trying IPv6
-  useFindAndModify: false,
-  useUnifiedTopology: true,
-};
-
 // Socket.io connections between client and server
 io.on('connection', (socket) => {
   User.find({})
@@ -196,7 +177,7 @@ io.on('connection', (socket) => {
         if (user) {
           console.log('emitting disconnect for user ' + user.username);
           socket.broadcast.emit('userLeft', socket.id);
-          User.count({}, (err, count) => {
+          User.estimatedDocumentCount({}, (err, count) => {
             socket.broadcast.emit('onlineUsers', count);
           });
         }
@@ -205,6 +186,26 @@ io.on('connection', (socket) => {
   });
 });
 
+// URI of the MongoDB database used by app (Use only one)
+// require('dotenv').config();
+// const db = 'mongodb://127.0.0.1:27017/helloworld'; // To use for connecting to local database (require MongoDB installed locally)
+const db = process.env.MONGODB_ATLAS_URI; // Can change to MONGODB_URI to connect to cloud database
+
+// mongoDB settings
+const options = {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  // autoIndex: true, // Will result in rejection of duplicate entries
+  keepAlive: true,
+  poolSize: 10,
+  bufferMaxEntries: 0,
+  connectTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  family: 4, // Use IPv4, skip trying IPv6
+  useFindAndModify: false,
+  useUnifiedTopology: true,
+};
+
 // Connect to the specified MongoDB database
 mongoose
   .connect(db, options)
@@ -212,6 +213,18 @@ mongoose
     console.log('MongoDB successfully connected');
   })
   .catch((err) => console.log(err));
+
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to DB Cluster');
+})
+
+mongoose.connection.on('error', (error) => {
+  console.error(error.message);
+})
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose Disconnected');
+})
 
 // Uses process.env.PORT if available otherwise 5000
 const port = process.env.PORT || 5000;
