@@ -21,7 +21,7 @@ const server = require('http').createServer(app);
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:64226'],
+    origin: ['http://localhost:3000', 'http://localhost:64226', 'https://helloworld-hnr.netlify.app'],
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
@@ -31,7 +31,7 @@ const cors = require('cors');
 
 var corsOptions = {
   // Specifies the origin(s) from which a server request can occur aside from its own origin
-  origin: ['http://localhost:3000', 'http://localhost:64226'],
+  origin: ['http://localhost:3000', 'http://localhost:64226', 'https://helloworld-hnr.netlify.app'],
 };
 
 app.use(cors(corsOptions));
@@ -59,8 +59,9 @@ app.use(
   })
 );
 
-// Gets the URI of the MongoDB database used by app
-const db = require('./config/keys').mongoURI; // Can change to mongoAtlasURI to connect to cloud database
+// URI of the MongoDB database used by app (Use only one)
+// const db = 'mongodb://127.0.0.1:27017/helloworld'; // To use for connecting to local database (require MongoDB installed locally)
+const db = process.env.MONGODB_ATLAS_URI; // Can change to MONGODB_URI to connect to cloud database
 
 // mongoDB settings
 const options = {
@@ -228,8 +229,8 @@ const cleanDatabase = async () => {
 };
 
 app.get('/', function (req, res) {
-  res.json({msg: 'Server is up and running.'})
-})
+  res.json({ msg: 'Server is up and running.' });
+});
 
 // listen for TERM signal .e.g. kill
 process.on('SIGTERM', () => cleanDatabase());
