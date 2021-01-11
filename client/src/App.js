@@ -46,7 +46,8 @@ function App() {
   const [mapOptions, setMapOptions] = useState(null);
 
   // Cache
-  const [users, setUsers] = useState(createFakeUsers(500, SG_POSITION, 1));
+  // const [users, setUsers] = useState(createFakeUsers(500, SG_POSITION, 1));
+  const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [numOnline, setNumOnline] = useState(0);
 
