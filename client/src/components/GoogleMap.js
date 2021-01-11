@@ -19,26 +19,31 @@ function createMapOptions(maps) {
 function GoogleMap({ users }) {
   const { mapOptions, setMapOptions } = useContext(StateContext);
   const [clusters, setClusters] = useState([]);
+  const [getCluster, setClusterFn] = useState(() => mapOptions => []);
 
+  // precalculate clusters if markers data has changed
+  useEffect(() => {
+    const newClusterFn = supercluster(users, {
+      minZoom: 0,
+      maxZoom: 16,
+      radius: 60,
+    });
+    setClusterFn(() => newClusterFn);
+  }, [users]);
+
+  // Update clusters
   useEffect(() => {
     if (mapOptions && mapOptions.bounds) {
-      const newClusters = supercluster(users, {
-        minZoom: 0,
-        maxZoom: 16,
-        radius: 60,
-      });
-
-      setClusters(
-        newClusters(mapOptions).map(({ wx, wy, numPoints, points }) => ({
-          lat: wy,
-          lng: wx,
-          numPoints: numPoints,
-          id: `${numPoints}_${points[0]._id}`,
-          points: points,
-        }))
-      );
+      const newClusters = getCluster(mapOptions).map(({ wx, wy, numPoints, points }) => ({
+        lat: wy,
+        lng: wx,
+        numPoints: numPoints,
+        id: `${numPoints}_${points[0]._id}`,
+        points: points,
+      }));
+      setClusters(newClusters);
     }
-  }, [mapOptions, users]);
+  }, [mapOptions, getCluster]);
 
   return (
     <div className={'google-map'}>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
 import './App.css';
-import { fakeUsers } from './util/fakeUsers';
+import createFakeUsers from './util/fakeUsers';
 import NameHolder from './components/nameholder/NameHolder';
 import LoginModal from './loginmodal/LoginModal';
 import GoogleMap from './components/GoogleMap';
@@ -15,7 +15,7 @@ export const StateContext = React.createContext({});
 
 const SG_POSITION = { lat: 1.3521, lng: 103.8198 };
 
-const socket = io("https://helloworld-hnr.herokuapp.com", {
+const socket = io('https://helloworld-hnr.herokuapp.com', {
   withCredentials: true,
   extraHeaders: {
     'my-custom-header': 'abcd',
@@ -45,15 +45,15 @@ function App() {
   const [image, setImage] = useState('boy1');
   const [mapOptions, setMapOptions] = useState(null);
 
-  const [users, setUsers] = useState(fakeUsers);
+  // Cache
+  const [users, setUsers] = useState(createFakeUsers(500, SG_POSITION, 1));
   const [messages, setMessages] = useState([]);
   const [numOnline, setNumOnline] = useState(0);
-
-  const [isUserInputted, setIsUserInputted] = useState(false);
 
   // Map Coordinates
   const [currLocation, setCurrLocation] = useState(SG_POSITION);
 
+  // onMount
   useEffect(() => {
     socket.on('connect', (message) => {
       console.log('A new user has connected');
@@ -63,10 +63,10 @@ function App() {
       console.log(msg);
     });
 
-    socket.on('outputUser', (allUsers) => {
-      allUsers.map((user) => console.log('user ' + user.username + ' joined'));
-      const cleanedData = allUsers.map((user) => createUserObj(user));
-      setUsers((prevUsers) => [...prevUsers, ...cleanedData]);
+    socket.on('outputUser', (newUsers) => {
+      newUsers.map((user) => console.log('user ' + user.username + ' joined'));
+      newUsers = newUsers.map((user) => createUserObj(user));
+      setUsers((prevUsers) => [...prevUsers, ...newUsers]);
     });
 
     socket.on('outputMessage', (newMessages) => {
@@ -92,19 +92,19 @@ function App() {
     ['outputUpdateUser', 'outputPosition'].forEach((event) => {
       socket.on(event, (newUsers) => {
         newUsers.map((user) => console.log(user.username + ' was modified'));
-        const cleanedData = newUsers.map((user) => createUserObj(user));
-        const ids = new Set(cleanedData.map((u) => u._id));
-        setUsers((prevUsers) => [...newUsers, ...prevUsers.filter((u) => !ids.has(u._id))]);
+        newUsers = newUsers.map((user) => createUserObj(user));
+        const ids = new Set(newUsers.map((u) => u._id));
+        setUsers((prevUsers) => [...prevUsers.filter((u) => !ids.has(u._id)), ...newUsers]);
       });
     });
 
     socket.on('onlineUsers', (number) => {
       console.log('users: ' + number);
-      setNumOnline(number + fakeUsers.length);
+      setNumOnline(number);
     });
 
     socket.on('userLeft', (userId) => {
-      console.log('user ' + userId + ' left' + ' called by ' + socket.id);
+      console.log('user ' + userId + ' left, called by ' + socket.id);
       setUsers((prevUsers) => [...prevUsers.filter((u) => u._id !== userId)]);
     });
 
@@ -120,55 +120,69 @@ function App() {
         setCurrLocation(location);
         setMapOptions({ center: location, zoom: 15 });
       });
-
-      if (isUserInputted) {
-        navigator.geolocation.watchPosition((position) => {
-          console.log('geolocation changed');
-          if (
-            currLocation.lat !== position.coords.latitude ||
-            currLocation.lng !== position.coords.longitude
-          ) {
-            const location = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
-
-            setCurrLocation(location);
-            console.log(location);
-            socket.emit('inputPosition', location);
-          }
-        });
-      }
     } else {
       console.log('Location disabled');
     }
+    setUsers((prevUsers) => [...prevUsers]);
   }, []);
 
+  // on avatar or name update
   useEffect(() => {
     console.log('Changed name/avatar');
     socket.emit('inputUpdateUser', { username: name, avatar: image });
   }, [name, image]);
 
+  // create user
+  const initUser = (name, image) => {
+    // send user input
+    socket.emit('inputUser', {
+      username: name,
+      avatar: image,
+      lat: currLocation.lat,
+      lng: currLocation.lng,
+    });
+
+    // listen for location update
+    if ('geolocation' in navigator) {
+      navigator.geolocation.watchPosition((position) => {
+        console.log('geolocation changed');
+        if (
+          currLocation.lat !== position.coords.latitude ||
+          currLocation.lng !== position.coords.longitude
+        ) {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          setCurrLocation(location);
+          console.log(location);
+          socket.emit('inputPosition', location);
+        }
+      });
+    }
+  };
+
   const contextProviderValue = {
     name,
-    setName,
+    setName: (newName) => {
+      setName(newName);
+      socket.emit('inputUpdateUser', {
+        username: newName,
+      });
+    },
     image,
-    setImage,
+    setImage: (newImage) => {
+      setImage(newImage);
+      socket.emit('inputUpdateUser', {
+        avatar: newImage,
+      });
+    },
     mapOptions,
     setMapOptions,
     socketId: socket.id,
-    currLocation,
-    numOnline,
     sendMessage: (text) => socket.emit('inputMessage', { text: text }),
-    sendUserInput: (name, image) => {
-      socket.emit('inputUser', {
-        username: name,
-        avatar: image,
-        lat: currLocation.lat,
-        lng: currLocation.lng,
-      });
-      setIsUserInputted(true);
-    },
+    initUser,
   };
 
   return (
@@ -176,8 +190,9 @@ function App() {
       <StateContext.Provider value={contextProviderValue}>
         <LoginModal />
         <NameHolder />
-        <NumberOfUsers />
+        <NumberOfUsers numOnline={numOnline} />
         <GoogleMap users={users} />
+        {/*<ReCenterIcon handleClick={toggleFakeUser} />*/}
         <ReCenterIcon handleClick={() => setMapOptions({ center: currLocation, zoom: 15 })} />
         <ChatBox messages={messages} />
       </StateContext.Provider>

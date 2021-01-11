@@ -1,9 +1,7 @@
-import React, { useContext } from 'react';
-import { StateContext } from '../../App';
+import React from 'react';
 import './styles.css';
 
-const NumberOfUsers = () => {
-  const { numOnline } = useContext(StateContext);
+const NumberOfUsers = ({ numOnline }) => {
 
   return <div className="top-right">{`${numOnline} users online`}</div>;
 };

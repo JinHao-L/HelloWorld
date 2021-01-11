@@ -1,37 +1,23 @@
 import React, { useContext, useState } from 'react';
+import { Modal } from 'react-bootstrap';
+
 import { StateContext } from '../../App';
+import { listOfImages } from '../picturecontainer/imagesList';
+import ListOfImages from '../picturecontainer/ListOfImages';
 import './styles.css';
 import '../picturecontainer/styles.css';
-import { listOfImages } from '../picturecontainer/imagesList';
-import { Modal } from 'react-bootstrap';
-import ListOfImages from '../picturecontainer/ListOfImages';
-import io from 'socket.io-client';
 
 const NameHolder = () => {
-  const socket = io('http://localhost:5000', {
-    withCredentials: true,
-    extraHeaders: {
-      'my-custom-header': 'abcd',
-    },
-  });
-
   const { name, setName, image, setImage } = useContext(StateContext);
   const [isPickAvatar, showAvatarPicker] = useState(false);
 
   const handleSelection = (pic) => {
     setImage(pic);
     showAvatarPicker(false);
-    socket.emit('inputUpdateUser', {
-      avatar: pic,
-    });
   };
 
   const handleNameChange = (event) => {
-    const newName = event.target.value;
-    setName(newName);
-    socket.emit('inputUpdateUser', {
-      username: newName,
-    });
+    setName(event.target.value);
   };
 
   return (

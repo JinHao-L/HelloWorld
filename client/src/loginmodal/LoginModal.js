@@ -5,13 +5,13 @@ import ListOfImages from '../components/picturecontainer/ListOfImages';
 import { StateContext } from '../App';
 
 const LoginModal = () => {
-  const { name, image, setName, setImage, sendUserInput, sendMessage } = useContext(StateContext);
+  const { name, image, setName, setImage, initUser, sendMessage } = useContext(StateContext);
   const [show, setShow] = useState(true);
 
   const handleSubmit = (event) => {
     setShow(false);
     event.preventDefault();
-    sendUserInput(name, image);
+    initUser(name, image);
     sendMessage("Hello everybody, I'm " + name);
   };
 
