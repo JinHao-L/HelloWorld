@@ -1,16 +1,16 @@
 # Welcome to the HelloWorld App
-![text](images/HelloWorldIntro.png)
+![text](client/images/HelloWorldIntro.png)
 
 Feeling bored? Chat with people around the world!
 
 HelloWorld is an application designed for connecting users throughout the globe with an interactive map display.
 
 ## Screenshots
-![starting page](images/HelloWorld3.png)*Joining in the fun!*
+![starting page](client/images/HelloWorld3.png)*Joining in the fun!*
 
-![zoom out](images/HelloWorld2.png)*Chat with people around you!*
+![zoom out](client/images/HelloWorld2.png)*Chat with people around you!*
 
-![zoom out even more](images/HelloWorld.png)*See people around the world!*
+![zoom out even more](client/images/HelloWorld.png)*See people around the world!*
 
 *Disclaimer: The app is partially populated with fake data.*
 
@@ -42,14 +42,12 @@ During COVID-19, it's hard to meet other people. Due to the frustration and ongo
     ```
     REACT_APP_GMAPS_API = ENTER YOUR API
     ```
+6. Setup your MongoDB Cloud database and get your MongoDB Atlas connection string
 
-6. Add another `.env` file in your root directory with your MongoDB Atlas connection string
+7. Add another `.env` file in your root directory with your MongoDB Atlas connection string
    ```
-   mongoURI = mongodb://(MongoDB connection string)
-   mongoAtlasURI = mongodb+srv://(MongoDB Atlas connection string)
+   MONGODB_ATLAS_URI = ENTER YOUR MONGODB CONNECTION STRING
    ```
-   Also ensure that you have MongoDB installed locally
-
 
 ### Usage
 Run `npm run dev` in the command line to run the client and server locally.
