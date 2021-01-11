@@ -1,10 +1,3 @@
-// Retrieve confidential information from .env file
-const result = require('dotenv').config();
-
-if (result.error) {
-  throw result.error;
-}
-
 // import statements
 const express = require('express');
 const mongoose = require('mongoose');
